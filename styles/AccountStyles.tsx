@@ -1,0 +1,148 @@
+import { StyleSheet } from 'react-native';
+
+export const accountStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#B2E5B2',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  userIcon: {
+    width: 60,
+    height: 60,
+    marginRight: 10,
+    borderRadius: 30,
+  },
+  headerTextContainer: {
+    flexDirection: 'column',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: '#000',
+  },
+  menuContainer: {
+    marginBottom: 40,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  menuIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+  },
+  menuText: {
+    fontSize: 16,
+    color: '#000',
+  },
+  freeBadge: {
+    marginLeft: 10,
+    backgroundColor: '#FFDD57',
+    color: '#000',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 14,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalLabel: {
+    alignSelf: 'flex-start',
+    fontSize: 14,
+    color: '#000',
+    marginTop: 10,
+  },
+  modalInput: {
+    width: '100%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginTop: 5,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    width: '100%',
+  },
+  modalButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    backgroundColor: '#000',
+    flex: 1,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  bottomNav: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  navIcon: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+  },
+  iconWrapper: {
+    padding: 5,
+    borderRadius: 20,
+  },
+  iconActive: {
+    borderWidth: 2,
+    borderColor: 'black',
+    backgroundColor: '#B2E5B2',
+  },
+});
