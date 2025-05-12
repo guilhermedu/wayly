@@ -16,6 +16,18 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
      npx expo start --clear
    ```
 
+## Executando com Docker
+
+Para construir a imagem Docker, execute:
+```bash
+docker build -t wayly .
+```
+
+Para iniciar o contêiner e mapear as portas necessárias:
+```bash
+docker run -it -p 8081:8081 wayly
+```
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
