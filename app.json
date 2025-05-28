@@ -5,9 +5,12 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
+
     "scheme": "wayly",
+
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+
     "ios": {
       "supportsTablet": true
     },
@@ -23,28 +26,37 @@
       "output": "static",
       "favicon": "./assets/logo.png"
     },
+
     "plugins": [
       [
         "react-native-auth0",
         {
-          "domain": "dev-atv28bb1mspeuafo.eu.auth0.com"
+          "domain": "dev-atv28bb1mspeuafo.eu.auth0.com",
+          "scheme": "wayly"
         }
       ],
       "expo-router"
     ],
+
     "extra": {
       "auth0Domain": "dev-atv28bb1mspeuafo.eu.auth0.com",
       "auth0ClientId": "AUPHjjz8BgPoDBOWdD3cAXJExLKYvBFZ",
-      "APP_SCHEME": "com.anonymous.wayly.auth0://dev-atv28bb1mspeuafo.eu.auth0.com/android/com.anonymous.wayly/callback",
-      "API_TOKEN": "IMABn8EBCAoz-WviGWo6Pu1pW-zQzgxeW8lOrasueSI",
-      "API_ENDPOINT": "http://192.168.57.34:8080/api/v1",
-      "API_KEY": "tEMTn2y0PGcEQ2e-xyM02sNxgXOLd329rAu2A7LF4Wc",
-      "ROUTES_API_ENDPOINT": "http://192.168.57.34:5000/api/v1/routes",
+
+      "API_TOKEN": "Dd9JPIkoHo0nP9eLYeGzegwUJkCBwArT0rqWY6bYhmc",
+      "API_ENDPOINT": "http://poi-service.grupo6-egs-deti.ua.pt/api/v1",
+      "API_KEY": "etryAXtxgq2uo1F7exeLcmUeV0IkMTcGHoKJwz77iqs",
+      "ROUTES_API_ENDPOINT": "http://routing-service.grupo6-egs-deti.ua.pt/api/v1/routes",
       "OPENCAGE_API_KEY": "2b9d44b15bb742f2b6e293f79efe059f",
-      "BASE_URL": "http://192.168.57.34:8000/api/v1",
-      "EMBED_URL": "http://192.168.57.34:8000/embed/entities",
-      "API_TOKEN_R": "2d8ce2d558780594a15c74dab8cca8bb601be505"
+      "BASE_URL": "http://review-it.grupo6-egs-deti.ua.pt/api/v1",
+      "EMBED_URL": "http://review-it.grupo6-egs-deti.ua.pt/embed/entities",
+      "API_TOKEN_R": "73bd7e25052fc92765a1b4bfcb0485e693b8b430",
+
+      "router": {},
+      "eas": {
+        "projectId": "8c1c52f6-88a9-4746-b2f7-d8bbaf74e8e5"
+      }
     },
+
     "experiments": {
       "typedRoutes": true
     }

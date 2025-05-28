@@ -11,8 +11,10 @@ export default function LoginScreen() {
   const { setUser, setToken } = useAuth();
 
   const redirectUri = AuthSession.makeRedirectUri({
-    native: 'com.anonymous.wayly.auth0://dev-atv28bb1mspeuafo.eu.auth0.com/android/com.anonymous.wayly/callback',
+    scheme: 'wayly',
+    path: 'callback'
   });
+  
 
   const discovery = {
     authorizationEndpoint: `https://${AUTH0_DOMAIN}/authorize`,
