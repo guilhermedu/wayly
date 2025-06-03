@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import {
   View, Text, TextInput, Image, TouchableOpacity,
-  ScrollView, Modal, Alert, ActivityIndicator,  Linking
+  ScrollView, Modal, Alert, ActivityIndicator, Linking
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
@@ -25,7 +25,7 @@ const haversineDistance = (lat1, lon1, lat2, lon2) => {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const {location}= useLocation();
+  const { location } = useLocation();
   const [poiImages, setPoiImages] = useState([]);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -59,7 +59,10 @@ export default function HomeScreen() {
     if (isLoading) return;
     setIsLoading(true);
     try {
-      const res = await axios.get(`${API_ENDPOINT}/points-of-interest?lat=${loc.latitude}&lon=${loc.longitude}&range=50`, {
+      const url = `${API_ENDPOINT}/points-of-interest?lat=${loc.latitude}&lon=${loc.longitude}&range=50`;
+      console.log('GET URL:', url);
+
+      const res = await axios.get(url, {
         headers: { 'X-API-Token': API_TOKEN }
       });
 
@@ -194,7 +197,7 @@ export default function HomeScreen() {
         </Modal>
       )}
 
-      <RouteButton /> 
+      <RouteButton />
 
       <View style={homeStyles.bottomNav}>
         <TouchableOpacity onPress={() => handleNavPress('/home')}>
@@ -224,6 +227,5 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
     </View>
-   
   );
 }

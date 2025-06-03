@@ -14,7 +14,6 @@ export default function LoginScreen() {
     scheme: 'wayly',
     path: 'callback'
   });
-  
 
   const discovery = {
     authorizationEndpoint: `https://${AUTH0_DOMAIN}/authorize`,
@@ -56,8 +55,10 @@ export default function LoginScreen() {
           setToken(tokenResult.accessToken);
 
           // Obtém os dados reais do usuário
+          const userInfoUrl = `https://${AUTH0_DOMAIN}/userinfo`;
+          console.log('FETCH URL:', userInfoUrl);
           const userInfoResponse = await fetch(
-            `https://${AUTH0_DOMAIN}/userinfo`,
+            userInfoUrl,
             { headers: { Authorization: `Bearer ${tokenResult.accessToken}` } }
           );
           const userInfo = await userInfoResponse.json();

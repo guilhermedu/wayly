@@ -35,9 +35,10 @@ const locationPresets: { [key: string]: LocationType } = {
 
 // Função para converter nome de cidade em coordenadas
 const geocodeCity = async (city: string): Promise<LocationType> => {
-  const response = await axios.get(
-    `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${OPENCAGE_API_KEY}&countrycode=pt`
-  );
+  const urlGeocode = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${OPENCAGE_API_KEY}&countrycode=pt`;
+  console.log('GET URL (geocodeCity):', urlGeocode);
+
+  const response = await axios.get(urlGeocode);
   const { results } = response.data;
   if (results && results.length > 0) {
     const { lat, lng } = results[0].geometry;
@@ -126,7 +127,6 @@ export default function MapScreen() {
   // Função que envia a rota para a API
   const sendRouteToAPI = async (origin: LocationType, destination: LocationType) => {
     // Constrói o payload conforme o que a API espera.
-    // Caso a documentação peça somente "coordinates" simples, use este formato.
     const payload = {
       destination: { coordinates: [destination.longitude, destination.latitude] },
       origin: { coordinates: [origin.longitude, origin.latitude] },
@@ -138,9 +138,12 @@ export default function MapScreen() {
       user_id: "string"  // ajuste conforme sua necessidade
     };
 
+    const url = ROUTES_API_ENDPOINT;
+    console.log('POST URL (sendRouteToAPI):', url);
+    console.log('POST Payload (sendRouteToAPI):', payload);
+
     try {
-      console.log("Enviando payload:", JSON.stringify(payload, null, 2));
-      const response = await axios.post(ROUTES_API_ENDPOINT, payload, {
+      const response = await axios.post(url, payload, {
         headers: {
           "Content-Type": "application/json",
           "X-API-Key": API_KEY,
@@ -257,7 +260,7 @@ export default function MapScreen() {
               title={step.name || `Step ${index + 1}`}
               pinColor="green"
             />
-          ))}
+          ))} 
         </MapView>
       ) : (
         <Text style={mapStyles.loadingText}>A obter localização...</Text>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <base-config cleartextTrafficPermitted="false" />
+
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">registry.deti</domain>
+    <domain includeSubdomains="true">routing-service.grupo6-egs-deti.ua.pt</domain>
+    <domain includeSubdomains="true">review-it.grupo6-egs-deti.ua.pt</domain>
+    <domain includeSubdomains="true">poi-service.grupo6-egs-deti.ua.pt</domain>
+  </domain-config>
+</network-security-config>
