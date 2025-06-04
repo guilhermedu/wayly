@@ -1,10 +1,7 @@
 pluginManagement {
   repositories {
-    // Needed for any com.android.* plugin
-    google()
-    // Good practice – most third-party plugins live here
-    mavenCentral()
-    // The default Gradle Plugin Portal
+    google()                 
+    mavenCentral()          
     gradlePluginPortal()
   }
   def reactNativeGradlePlugin = new File(
@@ -28,8 +25,8 @@ pluginManagement {
 plugins {
   id("com.facebook.react.settings")
   id("expo-autolinking-settings")
-  id("com.android.application") version "8.8.2" apply false
-  id("com.android.library")    version "8.8.2" apply false
+  id("com.android.application") version "8.5.0" apply false
+  id("com.android.library")    version "8.5.0" apply false
 }
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
