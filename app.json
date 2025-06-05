@@ -20,7 +20,7 @@
       "package": "com.anonymous.wayly",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyAcHjtdwhCDqwGvNlOMhSvdz_I1frVilh0"
+          "apiKey": ""
         }
       }
     },
