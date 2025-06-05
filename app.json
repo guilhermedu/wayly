@@ -5,12 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
-
     "scheme": "wayly",
-
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
-
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -23,7 +20,7 @@
       "package": "com.anonymous.wayly",
       "config": {
         "googleMaps": {
-          "apiKey": "2b9d44b15bb742f2b6e293f79efe059f"
+          "apiKey": "AIzaSyAcHjtdwhCDqwGvNlOMhSvdz_I1frVilh0"
         }
       }
     },
@@ -32,7 +29,6 @@
       "output": "static",
       "favicon": "./assets/logo.png"
     },
-
     "plugins": [
       [
         "react-native-auth0",
@@ -43,30 +39,25 @@
       ],
       "expo-router"
     ],
-
     "extra": {
       "auth0Domain": "dev-atv28bb1mspeuafo.eu.auth0.com",
       "auth0ClientId": "AUPHjjz8BgPoDBOWdD3cAXJExLKYvBFZ",
-
-      "API_TOKEN":        "xynVcopLsJWQ_TKo-5l7Pz9Iz8DSI3UJLlKmH7KPXg0",
-      "API_KEY":          "NVtAAKjrwpyhIIJ3X-doCeRkdsaN-nPO8fepZ2_t-5M",
-      "API_TOKEN_R":      "0c33b3dc255cbc1367731d7bd2fa04bdeb9817b8",
-
-      "API_ENDPOINT":        "http://grupo6-egs-deti.ua.pt/poi-service/api/v1",
+      "API_TOKEN": "WhDJCF679hmTNFJQpflKjb2toq6d81Urg4qquNQoxW8",
+      "API_KEY": "LO9TsIJ0UIOi39QKBXmBFtuBpI9Z_79PQGybjsyhcv4",
+      "API_TOKEN_R": "d0966e1940307358dec0e60189fc30f5fe10e034",
+      "API_ENDPOINT": "http://grupo6-egs-deti.ua.pt/poi-service/api/v1",
       "ROUTES_API_ENDPOINT": "http://grupo6-egs-deti.ua.pt/routing-service/api/v1/routes",
-      "BASE_URL":            "http://grupo6-egs-deti.ua.pt/review-it/api/v1",
-      "EMBED_URL":           "http://grupo6-egs-deti.ua.pt/review-it/embed/entities",
-
+      "BASE_URL": "http://grupo6-egs-deti.ua.pt/review-it/api/v1",
+      "EMBED_URL": "http://grupo6-egs-deti.ua.pt/review-it/embed/entities",
       "OPENCAGE_API_KEY": "2b9d44b15bb742f2b6e293f79efe059f",
       "router": {},
-
       "eas": {
-        "projectId": "8c1c52f6-88a9-4746-b2f7-d8bbaf74e8e5"
+        "projectId": "b626b344-dec0-41dc-9e6a-8a81a797a855"
       }
     },
-
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "chapelsdev"
   }
 }
