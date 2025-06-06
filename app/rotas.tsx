@@ -101,15 +101,21 @@ export default function MapScreen() {
     let destinationCoords: LocationType;
 
     try {
+      const keyPreset = originText.trim().charAt(0).toUpperCase() 
+                  + originText.trim().slice(1).toLowerCase();
       // Trata o campo de origem: se for "atual" ou vazio, usa a localização atual
-      originCoords = (originText.trim().toLowerCase() === 'atual' || originText.trim() === '')
-        ? location
-        : (locationPresets[originText] || await geocodeCity(originText));
+      originCoords = 
+        originText.trim().toLowerCase() === 'atual' || originText.trim() === ''
+          ? location
+          : (locationPresets[keyPreset] || (await geocodeCity(originText)));
 
+      const destPreset = destinationText.trim().charAt(0).toUpperCase() 
+                  + destinationText.trim().slice(1).toLowerCase();
       // Trata o campo de destino: se for "atual" ou vazio, usa a localização atual
-      destinationCoords = (destinationText.trim().toLowerCase() === 'atual' || destinationText.trim() === '')
-        ? location
-        : (locationPresets[destinationText] || await geocodeCity(destinationText));
+      destinationCoords =
+        destinationText.trim().toLowerCase() === 'atual' || destinationText.trim() === ''
+          ? location
+          : (locationPresets[destPreset] || (await geocodeCity(destinationText)));
 
       // Se a origem for definida de forma explícita, atualiza a localização (opcional)
       if (originText.trim().toLowerCase() !== 'atual' && originText.trim() !== '') {
@@ -184,16 +190,38 @@ export default function MapScreen() {
         </View>
         <View style={mapStyles.inputsContainer}>
           <TextInput
-            style={[mapStyles.input, { flex: 1, marginRight: 5 }]}
+            style={{
+              flex: 1,
+              marginRight: 5,
+              borderWidth: 1,
+              borderColor: '#888',
+              borderRadius: 4,
+              height: 40,
+              paddingHorizontal: 8,
+              color: '#000',         // força cor do texto
+              backgroundColor: '#FFF' // força fundo branco
+            }}
             value={originText}
             onChangeText={setOriginText}
             placeholder="Origem (atual)"
+            placeholderTextColor="#999" // cor visível para o placeholder
           />
           <TextInput
-            style={[mapStyles.input, { flex: 1, marginLeft: 5 }]}
+            style={{
+              flex: 1,
+              marginLeft: 5,
+              borderWidth: 1,
+              borderColor: '#888',
+              borderRadius: 4,
+              height: 40,
+              paddingHorizontal: 8,
+              color: '#000',
+              backgroundColor: '#FFF'
+            }}
             value={destinationText}
             onChangeText={setDestinationText}
             placeholder="Destino"
+            placeholderTextColor="#999"
           />
         </View>
         <TouchableOpacity

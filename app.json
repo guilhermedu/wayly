@@ -20,7 +20,7 @@
       "package": "com.anonymous.wayly",
       "config": {
         "googleMaps": {
-          "apiKey": ""
+          "apiKey": "AIzaSyAcHjtdwhCDqwGvNlOMhSvdz_I1frVilh0"
         }
       }
     },
@@ -30,6 +30,13 @@
       "favicon": "./assets/logo.png"
     },
     "plugins": [
+      [
+        "expo-build-properties", {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
       [
         "react-native-auth0",
         {
@@ -42,9 +49,9 @@
     "extra": {
       "auth0Domain": "dev-atv28bb1mspeuafo.eu.auth0.com",
       "auth0ClientId": "AUPHjjz8BgPoDBOWdD3cAXJExLKYvBFZ",
-      "API_TOKEN": "WhDJCF679hmTNFJQpflKjb2toq6d81Urg4qquNQoxW8",
-      "API_KEY": "LO9TsIJ0UIOi39QKBXmBFtuBpI9Z_79PQGybjsyhcv4",
-      "API_TOKEN_R": "d0966e1940307358dec0e60189fc30f5fe10e034",
+      "API_TOKEN": "Ad953oDxevz4OklqREUbngKGolILr7x9kBoNNkjspXc",
+      "API_KEY": "NkCtBYy5k4-XgzD_5sUb824iiXhbuHFvSe4tq3eimJI",
+      "API_TOKEN_R": "16d8aabb565e7bf1babef377520aa5beb83d40f7",
       "API_ENDPOINT": "http://grupo6-egs-deti.ua.pt/poi-service/api/v1",
       "ROUTES_API_ENDPOINT": "http://grupo6-egs-deti.ua.pt/routing-service/api/v1/routes",
       "BASE_URL": "http://grupo6-egs-deti.ua.pt/review-it/api/v1",
