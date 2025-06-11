@@ -33,6 +33,11 @@ const locationPresets: { [key: string]: LocationType } = {
   'Lisboa': { latitude: 38.7169, longitude: -9.1399 },
 };
 
+const findPreset = (name: string) =>
+  Object.entries(locationPresets)
+    .find(([k]) => k.toLowerCase() === name.trim().toLowerCase())?.[1];
+
+
 // Função para converter nome de cidade em coordenadas
 const geocodeCity = async (city: string): Promise<LocationType> => {
   const response = await axios.get(
@@ -57,6 +62,8 @@ export default function MapScreen() {
   const lastSentRef = useRef<number>(0);
   const THROTTLE_TIME = 3000;
   const [activeRoute, setActiveRoute] = useState('/rotas');
+  const [isLoading, setIsLoading]   = useState(false);   // ⬅️ novo
+
 
   // Função para tratar a navegação inferior
   const handleNavPress = (route: string) => {
@@ -91,12 +98,11 @@ export default function MapScreen() {
 
   // Função chamada quando o usuário envia os textos de origem e destino
   const handleTextRouteSend = async () => {
-    if (!location) return;
+    if (!location || isLoading) return;        // impede cliques simultâneos
     const now = Date.now();
-    // Evita chamadas frequentes (throttling)
     if (now - lastSentRef.current < THROTTLE_TIME) return;
     lastSentRef.current = now;
-
+    setIsLoading(true); 
     let originCoords: LocationType;
     let destinationCoords: LocationType;
 
@@ -107,7 +113,7 @@ export default function MapScreen() {
       originCoords = 
         originText.trim().toLowerCase() === 'atual' || originText.trim() === ''
           ? location
-          : (locationPresets[keyPreset] || (await geocodeCity(originText)));
+          : (findPreset(originText) || await geocodeCity(originText));
 
       const destPreset = destinationText.trim().charAt(0).toUpperCase() 
                   + destinationText.trim().slice(1).toLowerCase();
@@ -115,7 +121,7 @@ export default function MapScreen() {
       destinationCoords =
         destinationText.trim().toLowerCase() === 'atual' || destinationText.trim() === ''
           ? location
-          : (locationPresets[destPreset] || (await geocodeCity(destinationText)));
+          : (findPreset(destinationText) || await geocodeCity(destinationText));
 
       // Se a origem for definida de forma explícita, atualiza a localização (opcional)
       if (originText.trim().toLowerCase() !== 'atual' && originText.trim() !== '') {
@@ -126,6 +132,8 @@ export default function MapScreen() {
     } catch (error) {
       console.error("Erro ao converter localizações:", error);
       Alert.alert("Erro", "Não foi possível converter os locais para coordenadas.");
+    }finally {
+      setIsLoading(false); // ⬅️ reseta o estado de loading
     }
   };
 
@@ -233,9 +241,10 @@ export default function MapScreen() {
             width: 200,
             alignItems: 'center',
           }}
+          disabled={isLoading}
           onPress={handleTextRouteSend}
         >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Calcular rotas</Text>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>{isLoading ? 'A calcular…' : 'Calcular rotas'}</Text>
         </TouchableOpacity>
       </View>
 

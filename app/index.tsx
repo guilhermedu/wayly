@@ -12,7 +12,7 @@ export default function LoginScreen() {
 
   const redirectUri = AuthSession.makeRedirectUri({
     scheme: 'wayly',
-    path: 'callback'
+    path: 'home'
   });
 
   const discovery = {
