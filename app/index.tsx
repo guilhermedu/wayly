@@ -11,7 +11,8 @@ export default function LoginScreen() {
   const { setUser, setToken } = useAuth();
 
   const redirectUri = AuthSession.makeRedirectUri({
-    native: 'com.anonymous.wayly.auth0://dev-atv28bb1mspeuafo.eu.auth0.com/android/com.anonymous.wayly/callback',
+    scheme: 'wayly',
+    path: 'home'
   });
 
   const discovery = {
@@ -54,8 +55,10 @@ export default function LoginScreen() {
           setToken(tokenResult.accessToken);
 
           // Obtém os dados reais do usuário
+          const userInfoUrl = `https://${AUTH0_DOMAIN}/userinfo`;
+          console.log('FETCH URL:', userInfoUrl);
           const userInfoResponse = await fetch(
-            `https://${AUTH0_DOMAIN}/userinfo`,
+            userInfoUrl,
             { headers: { Authorization: `Bearer ${tokenResult.accessToken}` } }
           );
           const userInfo = await userInfoResponse.json();

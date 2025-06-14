@@ -33,6 +33,11 @@ const locationPresets: { [key: string]: LocationType } = {
   'Lisboa': { latitude: 38.7169, longitude: -9.1399 },
 };
 
+const findPreset = (name: string) =>
+  Object.entries(locationPresets)
+    .find(([k]) => k.toLowerCase() === name.trim().toLowerCase())?.[1];
+
+
 // Função para converter nome de cidade em coordenadas
 const geocodeCity = async (city: string): Promise<LocationType> => {
   const response = await axios.get(
@@ -57,6 +62,8 @@ export default function MapScreen() {
   const lastSentRef = useRef<number>(0);
   const THROTTLE_TIME = 3000;
   const [activeRoute, setActiveRoute] = useState('/rotas');
+  const [isLoading, setIsLoading]   = useState(false);   // ⬅️ novo
+
 
   // Função para tratar a navegação inferior
   const handleNavPress = (route: string) => {
@@ -91,25 +98,30 @@ export default function MapScreen() {
 
   // Função chamada quando o usuário envia os textos de origem e destino
   const handleTextRouteSend = async () => {
-    if (!location) return;
+    if (!location || isLoading) return;        // impede cliques simultâneos
     const now = Date.now();
-    // Evita chamadas frequentes (throttling)
     if (now - lastSentRef.current < THROTTLE_TIME) return;
     lastSentRef.current = now;
-
+    setIsLoading(true); 
     let originCoords: LocationType;
     let destinationCoords: LocationType;
 
     try {
+      const keyPreset = originText.trim().charAt(0).toUpperCase() 
+                  + originText.trim().slice(1).toLowerCase();
       // Trata o campo de origem: se for "atual" ou vazio, usa a localização atual
-      originCoords = (originText.trim().toLowerCase() === 'atual' || originText.trim() === '')
-        ? location
-        : (locationPresets[originText] || await geocodeCity(originText));
+      originCoords = 
+        originText.trim().toLowerCase() === 'atual' || originText.trim() === ''
+          ? location
+          : (findPreset(originText) || await geocodeCity(originText));
 
+      const destPreset = destinationText.trim().charAt(0).toUpperCase() 
+                  + destinationText.trim().slice(1).toLowerCase();
       // Trata o campo de destino: se for "atual" ou vazio, usa a localização atual
-      destinationCoords = (destinationText.trim().toLowerCase() === 'atual' || destinationText.trim() === '')
-        ? location
-        : (locationPresets[destinationText] || await geocodeCity(destinationText));
+      destinationCoords =
+        destinationText.trim().toLowerCase() === 'atual' || destinationText.trim() === ''
+          ? location
+          : (findPreset(destinationText) || await geocodeCity(destinationText));
 
       // Se a origem for definida de forma explícita, atualiza a localização (opcional)
       if (originText.trim().toLowerCase() !== 'atual' && originText.trim() !== '') {
@@ -120,6 +132,8 @@ export default function MapScreen() {
     } catch (error) {
       console.error("Erro ao converter localizações:", error);
       Alert.alert("Erro", "Não foi possível converter os locais para coordenadas.");
+    }finally {
+      setIsLoading(false); // ⬅️ reseta o estado de loading
     }
   };
 
@@ -184,16 +198,38 @@ export default function MapScreen() {
         </View>
         <View style={mapStyles.inputsContainer}>
           <TextInput
-            style={[mapStyles.input, { flex: 1, marginRight: 5 }]}
+            style={{
+              flex: 1,
+              marginRight: 5,
+              borderWidth: 1,
+              borderColor: '#888',
+              borderRadius: 4,
+              height: 40,
+              paddingHorizontal: 8,
+              color: '#000',         // força cor do texto
+              backgroundColor: '#FFF' // força fundo branco
+            }}
             value={originText}
             onChangeText={setOriginText}
             placeholder="Origem (atual)"
+            placeholderTextColor="#999" // cor visível para o placeholder
           />
           <TextInput
-            style={[mapStyles.input, { flex: 1, marginLeft: 5 }]}
+            style={{
+              flex: 1,
+              marginLeft: 5,
+              borderWidth: 1,
+              borderColor: '#888',
+              borderRadius: 4,
+              height: 40,
+              paddingHorizontal: 8,
+              color: '#000',
+              backgroundColor: '#FFF'
+            }}
             value={destinationText}
             onChangeText={setDestinationText}
             placeholder="Destino"
+            placeholderTextColor="#999"
           />
         </View>
         <TouchableOpacity
@@ -205,9 +241,10 @@ export default function MapScreen() {
             width: 200,
             alignItems: 'center',
           }}
+          disabled={isLoading}
           onPress={handleTextRouteSend}
         >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>Calcular rotas</Text>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>{isLoading ? 'A calcular…' : 'Calcular rotas'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -237,7 +274,8 @@ export default function MapScreen() {
       {location ? (
         <MapView
           style={mapStyles.map}
-          region={getMapRegion()}
+          provider="google"
+          initialRegion={getMapRegion()}
           showsUserLocation
           followsUserLocation
         >

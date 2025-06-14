@@ -40,15 +40,15 @@ export type POI = {
 
 async function getPOI(poiId: string): Promise<POI> {
   try {
-    const response = await axios.get(
-      `${API_ENDPOINT}/points-of-interest/${poiId}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Token': API_TOKEN,
-        },
-      }
-    );
+    const url = `${API_ENDPOINT}/points-of-interest/${poiId}`;
+    console.log('GET URL (getPOI):', url);
+
+    const response = await axios.get(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': API_TOKEN,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error('Erro ao obter POI:', error);
@@ -58,16 +58,16 @@ async function getPOI(poiId: string): Promise<POI> {
 
 async function updatePOI(poiId: string, poiData: POI): Promise<POI> {
   try {
-    const response = await axios.put(
-      `${API_ENDPOINT}/points-of-interest/${poiId}`,
-      poiData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Token': API_TOKEN,
-        },
-      }
-    );
+    const url = `${API_ENDPOINT}/points-of-interest/${poiId}`;
+    console.log('PUT URL (updatePOI):', url);
+    console.log('PUT Payload (updatePOI):', poiData);
+
+    const response = await axios.put(url, poiData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Token': API_TOKEN,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error('Erro ao atualizar POI:', error);
@@ -131,8 +131,11 @@ export default function EntitiesManager() {
     if (!loc) return;
     setLoadingPOIs(true);
     try {
+      const url = `${API_ENDPOINT}/points-of-interest?lat=${loc.latitude}&lon=${loc.longitude}&range=100`;
+      console.log('GET URL (fetchPOIs):', url);
+
       const res = await axios.get(
-        `${API_ENDPOINT}/points-of-interest?lat=${loc.latitude}&lon=${loc.longitude}&range=100`,
+        url,
         { headers: { 'X-API-Token': API_TOKEN } }
       );
       const data = res.data.map((poi: any) => ({
@@ -154,23 +157,26 @@ export default function EntitiesManager() {
   const fetchEntities = async () => {
     setLoadingEntities(true);
     try {
-      const res = await fetch(`${BASE_URL}/entities/?all=true`, {
+      const url = `${BASE_URL}/entities/?all=true`;
+      console.log('FETCH URL (fetchEntities):', url);
+
+      const res = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${API_TOKEN_R}`,
         },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
+
       const allEntities: any[] = await res.json();
-  
+
       const newMap = new Map<string, any>();
       allEntities.forEach(entity => {
         const key = normalizeName(entity.title || entity.name);
         newMap.set(key, entity);
       });
       setEntitiesMap(newMap);
-  
+
     } catch (e) {
       console.error(e);
       Alert.alert('Erro', 'Não foi possível listar entidades.');
@@ -178,15 +184,19 @@ export default function EntitiesManager() {
       setLoadingEntities(false);
     }
   };
-  
 
   // Cria a entidade a partir de um POI se ela não existir
   const createEntity = async (poi: POI) => {
     setLoadingAction(true);
     try {
+      const url = `${BASE_URL}/entities/`;
+      const payload = { name: poi.name, title: poi.title };
+      console.log('POST URL (createEntity):', url);
+      console.log('POST Payload (createEntity):', payload);
+
       const response = await axios.post(
-        `${BASE_URL}/entities/`,
-        { name: poi.name, title: poi.title },
+        url,
+        payload,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -211,7 +221,10 @@ export default function EntitiesManager() {
   const deleteEntity = async (id: string) => {
     setLoadingAction(true);
     try {
-      await fetch(`${BASE_URL}/entities/${id}/`, {
+      const url = `${BASE_URL}/entities/${id}/`;
+      console.log('DELETE URL (deleteEntity):', url);
+
+      await fetch(url, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -248,7 +261,10 @@ export default function EntitiesManager() {
     }
     try {
       // Obtém a entidade atualizada pelo seu ID
-      const res = await axios.get(`${BASE_URL}/entities/${entity.id}/`, {
+      const urlGetEntity = `${BASE_URL}/entities/${entity.id}/`;
+      console.log('GET URL (syncRatingForPOI - get entity):', urlGetEntity);
+
+      const res = await axios.get(urlGetEntity, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Token ${API_TOKEN_R}`,

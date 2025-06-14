@@ -12,11 +12,17 @@
       "supportsTablet": true
     },
     "android": {
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.wayly"
+      "package": "com.anonymous.wayly",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAcHjtdwhCDqwGvNlOMhSvdz_I1frVilh0"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -25,9 +31,17 @@
     },
     "plugins": [
       [
+        "expo-build-properties", {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      [
         "react-native-auth0",
         {
-          "domain": "dev-atv28bb1mspeuafo.eu.auth0.com"
+          "domain": "dev-atv28bb1mspeuafo.eu.auth0.com",
+          "scheme": "wayly"
         }
       ],
       "expo-router"
@@ -35,18 +49,22 @@
     "extra": {
       "auth0Domain": "dev-atv28bb1mspeuafo.eu.auth0.com",
       "auth0ClientId": "AUPHjjz8BgPoDBOWdD3cAXJExLKYvBFZ",
-      "APP_SCHEME": "com.anonymous.wayly.auth0://dev-atv28bb1mspeuafo.eu.auth0.com/android/com.anonymous.wayly/callback",
-      "API_TOKEN": "IMABn8EBCAoz-WviGWo6Pu1pW-zQzgxeW8lOrasueSI",
-      "API_ENDPOINT": "http://192.168.57.34:8080/api/v1",
-      "API_KEY": "tEMTn2y0PGcEQ2e-xyM02sNxgXOLd329rAu2A7LF4Wc",
-      "ROUTES_API_ENDPOINT": "http://192.168.57.34:5000/api/v1/routes",
+      "API_TOKEN": "Ad953oDxevz4OklqREUbngKGolILr7x9kBoNNkjspXc",
+      "API_KEY": "NkCtBYy5k4-XgzD_5sUb824iiXhbuHFvSe4tq3eimJI",
+      "API_TOKEN_R": "16d8aabb565e7bf1babef377520aa5beb83d40f7",
+      "API_ENDPOINT": "http://grupo6-egs-deti.ua.pt/poi-service/api/v1",
+      "ROUTES_API_ENDPOINT": "http://grupo6-egs-deti.ua.pt/routing-service/api/v1/routes",
+      "BASE_URL": "http://grupo6-egs-deti.ua.pt/review-it/api/v1",
+      "EMBED_URL": "http://grupo6-egs-deti.ua.pt/review-it/embed/entities",
       "OPENCAGE_API_KEY": "2b9d44b15bb742f2b6e293f79efe059f",
-      "BASE_URL": "http://192.168.57.34:8000/api/v1",
-      "EMBED_URL": "http://192.168.57.34:8000/embed/entities",
-      "API_TOKEN_R": "2d8ce2d558780594a15c74dab8cca8bb601be505"
+      "router": {},
+      "eas": {
+        "projectId": "b626b344-dec0-41dc-9e6a-8a81a797a855"
+      }
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "chapelsdev"
   }
 }

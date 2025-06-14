@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useContext, useCallback } from 'react';
 import {
   View, TextInput, Text, Image, ScrollView, KeyboardAvoidingView,
   Platform, TouchableOpacity, Alert, Modal
@@ -9,7 +9,7 @@ import axios from 'axios';
 import Slider from '@react-native-community/slider';
 import { searchStyles } from '../styles/SearchStyles';
 import { StepsContext } from '../context/StepsContext';
-import { useLocation } from '../context/LocationContext'
+import { useLocation } from '../context/LocationContext';
 import RouteButton from '../components/RouteButton';
 import { API_TOKEN, API_ENDPOINT } from '../constants/authConfig';
 
@@ -62,13 +62,14 @@ export default function SearchScreen() {
 
   const fetchPOIs = useCallback(async (loc: { latitude: number; longitude: number }) => {
     try {
-      const response = await axios.get(
-        `${API_ENDPOINT}/points-of-interest?lat=${loc.latitude}&lon=${loc.longitude}&range=${distance}`, {
-          headers: {
-            'X-API-Token': API_TOKEN,
-          },
-        }
-      );
+      const url = `${API_ENDPOINT}/points-of-interest?lat=${loc.latitude}&lon=${loc.longitude}&range=${distance}`;
+      console.log('GET URL (fetchPOIs):', url);
+
+      const response = await axios.get(url, {
+        headers: {
+          'X-API-Token': API_TOKEN,
+        },
+      });
 
       const pois = response.data.map((poi) => {
         const dist = haversineDistance(loc.latitude, loc.longitude, poi.latitude, poi.longitude);
