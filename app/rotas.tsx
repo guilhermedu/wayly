@@ -28,169 +28,343 @@ type LocationType = {
 };
 
 const locationPresets: { [key: string]: LocationType } = {
-  'Porto': { latitude: 41.1579, longitude: -8.6291 },
-  'Aveiro': { latitude: 40.6405, longitude: -8.6538 },
-  'Lisboa': { latitude: 38.7169, longitude: -9.1399 },
+  'Porto': { latitude: 41.1579, longitude: -8.6291, name: 'Porto' },
+  'Aveiro': { latitude: 40.6405, longitude: -8.6538, name: 'Aveiro' },
+  'Lisboa': { latitude: 38.7169, longitude: -9.1399, name: 'Lisboa' },
 };
 
 const findPreset = (name: string) =>
   Object.entries(locationPresets)
     .find(([k]) => k.toLowerCase() === name.trim().toLowerCase())?.[1];
 
-
 // Função para converter nome de cidade em coordenadas
 const geocodeCity = async (city: string): Promise<LocationType> => {
-  const response = await axios.get(
-    `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${OPENCAGE_API_KEY}&countrycode=pt`
-  );
-  const { results } = response.data;
-  if (results && results.length > 0) {
-    const { lat, lng } = results[0].geometry;
-    return { latitude: lat, longitude: lng };
+  try {
+    const response = await axios.get(
+      `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${OPENCAGE_API_KEY}&countrycode=pt&limit=1`
+    );
+    
+    const { results } = response.data;
+    if (results && results.length > 0) {
+      const { lat, lng } = results[0].geometry;
+      const location = { 
+        latitude: lat, 
+        longitude: lng, 
+        name: results[0].formatted || city 
+      };
+      return location;
+    }
+    throw new Error(`Nenhum resultado para "${city}"`);
+  } catch (error) {
+    throw error;
   }
-  throw new Error(`Nenhum resultado para "${city}"`);
 };
 
 export default function MapScreen() {
   const router = useRouter();
   const { steps, removeStep } = React.useContext(StepsContext);
-  const { location, setLocation } = useLocation(); // caso queira atualizar a localização
+  const { location } = useLocation();
   const [originText, setOriginText] = useState('');
   const [destinationText, setDestinationText] = useState('');
   const [routeAlternatives, setRouteAlternatives] = useState<LocationType[][]>([]);
   const [stepsMarkers, setStepsMarkers] = useState<LocationType[]>([]);
+  
+  const [originCoords, setOriginCoords] = useState<LocationType | null>(null);
+  const [destinationCoords, setDestinationCoords] = useState<LocationType | null>(null);
+  
   const lastSentRef = useRef<number>(0);
   const THROTTLE_TIME = 3000;
   const [activeRoute, setActiveRoute] = useState('/rotas');
-  const [isLoading, setIsLoading]   = useState(false);   // ⬅️ novo
+  const [isLoading, setIsLoading] = useState(false);
 
+  // Função corrigida para extrair coordenadas
+  const extractGeometryCoordinates = (geometry: any): LocationType[] => {
+    try {
+      if (!geometry) return [];
+      
+      // Parse string JSON se necessário
+      if (typeof geometry === 'string') {
+        try {
+          geometry = JSON.parse(geometry);
+        } catch (e) {
+          return [];
+        }
+      }
+      
+      let coordinates: number[][] = [];
+      
+      // Formato GeoJSON LineString (resposta da API para 2 waypoints)
+      if (geometry.type === 'LineString' && Array.isArray(geometry.coordinates)) {
+        coordinates = geometry.coordinates;
+      }
+      // Formato GeoJSON Feature
+      else if (geometry.type === 'Feature' && geometry.geometry?.type === 'LineString') {
+        coordinates = geometry.geometry.coordinates;
+      }
+      // Array direto de coordenadas
+      else if (Array.isArray(geometry.coordinates)) {
+        coordinates = geometry.coordinates;
+      }
+      // Array direto
+      else if (Array.isArray(geometry)) {
+        coordinates = geometry;
+      }
+      else {
+        return [];
+      }
+      
+      // Converter [lng, lat] para {latitude, longitude}
+      return coordinates
+        .filter((coord): coord is [number, number] => 
+          Array.isArray(coord) && 
+          coord.length >= 2 && 
+          typeof coord[0] === 'number' && 
+          typeof coord[1] === 'number' &&
+          !isNaN(coord[0]) && 
+          !isNaN(coord[1])
+        )
+        .map((coord) => ({
+          latitude: coord[1],   // ORS: [longitude, latitude]
+          longitude: coord[0],
+        }));
+    } catch (error) {
+      return [];
+    }
+  };
 
-  // Função para tratar a navegação inferior
-  const handleNavPress = (route: string) => {
+  const handleNavPress = (route: '/home' | '/search' | '/rotas' | '/review' | '/account') => {
     setActiveRoute(route);
     router.replace(route);
   };
 
-  // Calcula a região do mapa para encaixar a localização atual e as alternativas de rota
   const getMapRegion = (): Region => {
     const allPoints = routeAlternatives.flat();
-    if (allPoints.length > 0 && location) {
-      const lats = allPoints.map(pt => pt.latitude).concat(location.latitude);
-      const longs = allPoints.map(pt => pt.longitude).concat(location.longitude);
+    const pointsToInclude = [...allPoints];
+    if (originCoords) pointsToInclude.push(originCoords);
+    if (destinationCoords) pointsToInclude.push(destinationCoords);
+    if (location) pointsToInclude.push(location);
+    
+    if (pointsToInclude.length > 0) {
+      const lats = pointsToInclude.map(pt => pt.latitude);
+      const longs = pointsToInclude.map(pt => pt.longitude);
       const minLat = Math.min(...lats);
       const maxLat = Math.max(...lats);
       const minLng = Math.min(...longs);
       const maxLng = Math.max(...longs);
+      
+      const latDelta = Math.max((maxLat - minLat) * 1.5, 0.01);
+      const lngDelta = Math.max((maxLng - minLng) * 1.5, 0.01);
+      
       return {
         latitude: (minLat + maxLat) / 2,
         longitude: (minLng + maxLng) / 2,
-        latitudeDelta: (maxLat - minLat) * 1.5 || 0.05,
-        longitudeDelta: (maxLng - minLng) * 1.5 || 0.05,
+        latitudeDelta: latDelta,
+        longitudeDelta: lngDelta,
       };
     }
+    
     return {
-      latitude: location?.latitude || 0,
-      longitude: location?.longitude || 0,
+      latitude: location?.latitude || 41.1579,
+      longitude: location?.longitude || -8.6291,
       latitudeDelta: 0.05,
       longitudeDelta: 0.05,
     };
   };
 
-  // Função chamada quando o usuário envia os textos de origem e destino
   const handleTextRouteSend = async () => {
-    if (!location || isLoading) return;        // impede cliques simultâneos
+    if (!location || isLoading) return;
+    
+    if (!originText.trim() && !destinationText.trim()) {
+      Alert.alert("Erro", "Por favor, preencha pelo menos o destino.");
+      return;
+    }
+    
     const now = Date.now();
     if (now - lastSentRef.current < THROTTLE_TIME) return;
     lastSentRef.current = now;
-    setIsLoading(true); 
-    let originCoords: LocationType;
-    let destinationCoords: LocationType;
+    setIsLoading(true);
+    
+    let resolvedOrigin: LocationType;
+    let resolvedDestination: LocationType;
 
     try {
-      const keyPreset = originText.trim().charAt(0).toUpperCase() 
-                  + originText.trim().slice(1).toLowerCase();
-      // Trata o campo de origem: se for "atual" ou vazio, usa a localização atual
-      originCoords = 
-        originText.trim().toLowerCase() === 'atual' || originText.trim() === ''
-          ? location
-          : (findPreset(originText) || await geocodeCity(originText));
-
-      const destPreset = destinationText.trim().charAt(0).toUpperCase() 
-                  + destinationText.trim().slice(1).toLowerCase();
-      // Trata o campo de destino: se for "atual" ou vazio, usa a localização atual
-      destinationCoords =
-        destinationText.trim().toLowerCase() === 'atual' || destinationText.trim() === ''
-          ? location
-          : (findPreset(destinationText) || await geocodeCity(destinationText));
-
-      // Se a origem for definida de forma explícita, atualiza a localização (opcional)
-      if (originText.trim().toLowerCase() !== 'atual' && originText.trim() !== '') {
-        setLocation(originCoords);
+      // Handle origin
+      if (!originText.trim() || originText.trim().toLowerCase() === 'atual') {
+        resolvedOrigin = { ...location, name: 'Localização Atual' };
+      } else {
+        const preset = findPreset(originText);
+        if (preset) {
+          resolvedOrigin = preset;
+        } else {
+          resolvedOrigin = await geocodeCity(originText);
+        }
       }
 
-      await sendRouteToAPI(originCoords, destinationCoords);
+      // Handle destination
+      if (!destinationText.trim()) {
+        throw new Error('Destino é obrigatório');
+      }
+      
+      if (destinationText.trim().toLowerCase() === 'atual') {
+        resolvedDestination = { ...location, name: 'Localização Atual' };
+      } else {
+        const preset = findPreset(destinationText);
+        if (preset) {
+          resolvedDestination = preset;
+        } else {
+          resolvedDestination = await geocodeCity(destinationText);
+        }
+      }
+
+      if (!resolvedOrigin || !resolvedDestination) {
+        throw new Error('Falha ao obter coordenadas válidas');
+      }
+
+      const distance = Math.sqrt(
+        Math.pow(resolvedOrigin.latitude - resolvedDestination.latitude, 2) +
+        Math.pow(resolvedOrigin.longitude - resolvedDestination.longitude, 2)
+      );
+      
+      if (distance < 0.001) {
+        Alert.alert("Aviso", "Origem e destino são muito próximos.");
+        return;
+      }
+
+      setOriginCoords(resolvedOrigin);
+      setDestinationCoords(resolvedDestination);
+
+      await sendRouteToAPI(resolvedOrigin, resolvedDestination);
     } catch (error) {
-      console.error("Erro ao converter localizações:", error);
-      Alert.alert("Erro", "Não foi possível converter os locais para coordenadas.");
-    }finally {
-      setIsLoading(false); // ⬅️ reseta o estado de loading
+      let errorMessage = "Não foi possível processar a rota: ";
+      
+      if (error && typeof error === 'object' && 'message' in error) {
+        const messageError = error as any;
+        errorMessage += messageError.message;
+      } else {
+        errorMessage += "Erro desconhecido";
+      }
+      
+      Alert.alert("Erro", errorMessage);
+      
+      setOriginCoords(null);
+      setDestinationCoords(null);
+      setRouteAlternatives([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Função que envia a rota para a API
   const sendRouteToAPI = async (origin: LocationType, destination: LocationType) => {
-    // Constrói o payload conforme o que a API espera.
-    // Caso a documentação peça somente "coordinates" simples, use este formato.
     const payload = {
-      destination: { coordinates: [destination.longitude, destination.latitude] },
-      origin: { coordinates: [origin.longitude, origin.latitude] },
-      steps: steps.map(p => ({
-        coordinates: [p.longitude, p.latitude],
-        location: p.name || "POI",
+      origin: { 
+        coordinates: [origin.longitude, origin.latitude] 
+      },
+      destination: { 
+        coordinates: [destination.longitude, destination.latitude] 
+      },
+      steps: steps.map((step: any) => ({
+        coordinates: [step.longitude, step.latitude],
+        location: step.name || "POI",
         notes: "string"
       })),
-      user_id: "string"  // ajuste conforme sua necessidade
+      user_id: "string"
     };
 
     try {
-      console.log("Enviando payload:", JSON.stringify(payload, null, 2));
       const response = await axios.post(ROUTES_API_ENDPOINT, payload, {
         headers: {
           "Content-Type": "application/json",
           "X-API-Key": API_KEY,
         },
+        timeout: 15000,
       });
 
-      Alert.alert("Sucesso", "Rotas alternativas recebidas!");
-      // A API retorna alternativas que podem ser segmentadas. Aqui, percorremos cada alternativa,
-      // extraindo os segmentos e transformando as coordenadas no formato do MapView.
+      if (!response.data) {
+        throw new Error('Resposta vazia da API');
+      }
+
+      const allRoutes: LocationType[][] = [];
+      
+      // Processar geometria principal
+      if (response.data.geometry) {
+        const mainRouteCoords = extractGeometryCoordinates(response.data.geometry);
+        if (mainRouteCoords.length > 0) {
+          allRoutes.push(mainRouteCoords);
+        }
+      }
+      
+      // Processar alternativas
       const alternatives = response.data.alternatives || [];
-      const parsedAlternatives = alternatives.map((alt: any) => {
-        const segments = alt.segments || [];
-        // Flatenamos os segmentos de cada rota
-        const allCoords = segments
-          .map((seg: any) => seg.geometry?.coordinates || [])
-          .flat();
-        // Converte [lng, lat] em { latitude, longitude }
-        return allCoords.map(([lng, lat]: [number, number]) => ({
-          latitude: lat,
-          longitude: lng,
-        }));
+      alternatives.forEach((alt: any) => {
+        // Multi-segment routes
+        if (alt.segments && alt.segments.length > 0) {
+          const allCoords: LocationType[] = [];
+          alt.segments.forEach((segment: any) => {
+            if (segment.geometry) {
+              const segmentCoords = extractGeometryCoordinates(segment.geometry);
+              allCoords.push(...segmentCoords);
+            }
+          });
+          if (allCoords.length > 0) {
+            allRoutes.push(allCoords);
+          }
+        }
+        // Single geometry alternatives
+        else if (alt.geometry) {
+          const altCoords = extractGeometryCoordinates(alt.geometry);
+          if (altCoords.length > 0) {
+            allRoutes.push(altCoords);
+          }
+        }
       });
-
-      console.log("Parsed alternatives:", parsedAlternatives);
-      setRouteAlternatives(parsedAlternatives);
-      // Atualiza os marcadores dos steps com os POIs já selecionados
-      setStepsMarkers(steps);
+      
+      // Fallback para linha direta se nenhuma rota foi extraída
+      if (allRoutes.length === 0) {
+        allRoutes.push([origin, destination]);
+        Alert.alert("Info", "Mostrando rota direta entre origem e destino.");
+      } else {
+        Alert.alert("Sucesso", `${allRoutes.length} rota(s) encontrada(s)!`);
+      }
+      
+      setRouteAlternatives(allRoutes);
+      setStepsMarkers(steps as LocationType[]);
+      
     } catch (error) {
-      console.error("❌ Erro ao enviar rota:", error);
-      Alert.alert("Erro", "Falha ao enviar rota.");
+      let errorMessage = "Falha ao calcular rota.";
+      
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any;
+        if (axiosError.response) {
+          if (axiosError.response.status === 401) {
+            errorMessage = "Erro de autenticação. Verifique a API key.";
+          } else if (axiosError.response.status >= 500) {
+            errorMessage = "Erro no servidor. Tente novamente mais tarde.";
+          } else {
+            errorMessage = `Erro na API: ${axiosError.response.status}`;
+          }
+        }
+      } else if (error && typeof error === 'object' && 'code' in error) {
+        const networkError = error as any;
+        if (networkError.code === 'ECONNABORTED') {
+          errorMessage = "Timeout na conexão. Verifique sua internet.";
+        }
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        const messageError = error as any;
+        if (messageError.message) {
+          errorMessage = messageError.message;
+        }
+      }
+      
+      Alert.alert("Erro", errorMessage);
+      
+      const directRoute = [origin, destination];
+      setRouteAlternatives([directRoute]);
+      setStepsMarkers(steps as LocationType[]);
     }
   };
 
   return (
     <View style={mapStyles.container}>
-      {/* Cabeçalho com logo, título e inputs */}
       <View style={mapStyles.header}>
         <View style={mapStyles.headerContent}>
           <Image source={require('../assets/logo.png')} style={mapStyles.logo} />
@@ -206,13 +380,14 @@ export default function MapScreen() {
               borderRadius: 4,
               height: 40,
               paddingHorizontal: 8,
-              color: '#000',         // força cor do texto
-              backgroundColor: '#FFF' // força fundo branco
+              color: '#000',
+              backgroundColor: '#FFF'
             }}
             value={originText}
             onChangeText={setOriginText}
             placeholder="Origem (atual)"
-            placeholderTextColor="#999" // cor visível para o placeholder
+            placeholderTextColor="#999"
+            editable={!isLoading}
           />
           <TextInput
             style={{
@@ -230,11 +405,12 @@ export default function MapScreen() {
             onChangeText={setDestinationText}
             placeholder="Destino"
             placeholderTextColor="#999"
+            editable={!isLoading}
           />
         </View>
         <TouchableOpacity
           style={{
-            backgroundColor: '#3DDC97',
+            backgroundColor: isLoading ? '#ccc' : '#3DDC97',
             padding: 12,
             borderRadius: 20,
             marginTop: 10,
@@ -244,24 +420,25 @@ export default function MapScreen() {
           disabled={isLoading}
           onPress={handleTextRouteSend}
         >
-          <Text style={{ color: '#fff', fontWeight: 'bold' }}>{isLoading ? 'A calcular…' : 'Calcular rotas'}</Text>
+          <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+            {isLoading ? 'A calcular…' : 'Calcular rotas'}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Lista dos POIs (steps) adicionados, se houver */}
-      {steps.length > 0 && (
+      {Array.isArray(steps) && steps.length > 0 && (
         <View style={{ padding: 10, backgroundColor: '#f2f2f2', maxHeight: 160 }}>
           <Text style={{ fontWeight: 'bold', marginBottom: 5 }}>🧭 POIs na rota:</Text>
           <ScrollView>
-            {steps.map((s, i) => (
+            {steps.map((step: any, i: number) => (
               <View
                 key={i}
                 style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}
               >
                 <Text>
-                  • {s.name || 'POI'} ({s.latitude.toFixed(3)}, {s.longitude.toFixed(3)})
+                  • {step.name || 'POI'} ({step.latitude?.toFixed(3)}, {step.longitude?.toFixed(3)})
                 </Text>
-                <TouchableOpacity onPress={() => removeStep(s)}>
+                <TouchableOpacity onPress={() => removeStep(step)}>
                   <Text style={{ color: 'red' }}>Remover</Text>
                 </TouchableOpacity>
               </View>
@@ -270,30 +447,56 @@ export default function MapScreen() {
         </View>
       )}
 
-      {/* Renderização do mapa */}
       {location ? (
         <MapView
           style={mapStyles.map}
           provider="google"
-          initialRegion={getMapRegion()}
+          region={getMapRegion()}
           showsUserLocation
           followsUserLocation
         >
-          <Marker coordinate={location} title="Estou aqui!" pinColor="blue" />
+          <Marker 
+            coordinate={location} 
+            title="Estou aqui!" 
+            pinColor="blue"
+            identifier="current-location"
+          />
+          
+          {originCoords && (
+            <Marker 
+              coordinate={originCoords} 
+              title={`Origem: ${originCoords.name || 'Local'}`}
+              pinColor="green"
+              identifier="origin"
+            />
+          )}
+          
+          {destinationCoords && (
+            <Marker 
+              coordinate={destinationCoords} 
+              title={`Destino: ${destinationCoords.name || 'Local'}`}
+              pinColor="red"
+              identifier="destination"
+            />
+          )}
+          
           {routeAlternatives.map((route, idx) => (
             <Polyline
               key={`route-${idx}`}
               coordinates={route}
               strokeColor={idx === 0 ? "#FF0000" : idx === 1 ? "#0000FF" : "#00AA00"}
               strokeWidth={4}
+              lineDashPattern={idx === 0 ? [] : [10, 5]}
             />
           ))}
+          
           {stepsMarkers.map((step, index) => (
             <Marker
               key={`step-${index}`}
               coordinate={step}
-              title={step.name || `Step ${index + 1}`}
-              pinColor="green"
+              title={step.name || `POI ${index + 1}`}
+              pinColor="orange"
+              identifier={`step-${index}`}
             />
           ))}
         </MapView>
@@ -301,7 +504,27 @@ export default function MapScreen() {
         <Text style={mapStyles.loadingText}>A obter localização...</Text>
       )}
 
-      {/* Barra de navegação inferior */}
+      {routeAlternatives.length > 0 && (
+        <View style={{
+          position: 'absolute',
+          bottom: 100,
+          left: 10,
+          right: 10,
+          backgroundColor: 'rgba(255,255,255,0.9)',
+          padding: 10,
+          borderRadius: 8,
+        }}>
+          <Text style={{ fontWeight: 'bold', textAlign: 'center' }}>
+            🗺️ {routeAlternatives.length} rota(s) encontrada(s)
+          </Text>
+          {originCoords && destinationCoords && (
+            <Text style={{ textAlign: 'center', fontSize: 12, color: '#666' }}>
+              {originCoords.name || 'Origem'} → {destinationCoords.name || 'Destino'}
+            </Text>
+          )}
+        </View>
+      )}
+
       <View style={mapStyles.bottomNav}>
         <TouchableOpacity onPress={() => handleNavPress('/home')}>
           <View style={[mapStyles.iconWrapper, activeRoute === '/home' && mapStyles.iconActive]}>
