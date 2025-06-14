@@ -31,7 +31,8 @@
     },
     "plugins": [
       [
-        "expo-build-properties", {
+        "expo-build-properties",
+        {
           "android": {
             "usesCleartextTraffic": true
           }
@@ -59,12 +60,12 @@
       "OPENCAGE_API_KEY": "2b9d44b15bb742f2b6e293f79efe059f",
       "router": {},
       "eas": {
-        "projectId": "b626b344-dec0-41dc-9e6a-8a81a797a855"
+        "projectId": "9e6757f9-8452-4ad1-a617-86ea4d4c4668"
       }
     },
     "experiments": {
       "typedRoutes": true
     },
-    "owner": "chapelsdev"
+    "owner": "superchapels"
   }
 }
